@@ -28,10 +28,10 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.sonar.wsclient.Sonar;
 import org.sonar.wsclient.services.Favourite;
-import org.sonar.wsclient.services.FavouriteDeleteQuery;
 import org.sonar.wsclient.services.FavouriteQuery;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.favorite.AddRequest;
+import org.sonarqube.ws.client.favorite.RemoveRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static util.ItUtils.newAdminWsClient;
@@ -61,16 +61,16 @@ public class FavoritesWsTest {
     List<Favourite> favourites = oldWsClient.findAll(new FavouriteQuery());
     assertThat(favourites).isEmpty();
 
-    // POST (create favourites)
+    // POST (create favorites)
     adminClient.favorites().add(new AddRequest("sample"));
     adminClient.favorites().add(new AddRequest("sample:src/main/xoo/sample/Sample.xoo"));
 
-    // GET (created favourites)
+    // GET (created favorites)
     favourites = oldWsClient.findAll(new FavouriteQuery());
     assertThat(favourites.stream().map(Favourite::getKey)).containsOnly("sample", "sample:src/main/xoo/sample/Sample.xoo");
 
-    // DELETE (a favourite)
-    oldWsClient.delete(new FavouriteDeleteQuery("sample"));
+    // DELETE (a favorite)
+    adminClient.favorites().remove(new RemoveRequest("sample"));
     favourites = oldWsClient.findAll(new FavouriteQuery());
     assertThat(favourites.stream().map(Favourite::getKey)).containsOnly("sample:src/main/xoo/sample/Sample.xoo");
   }

@@ -18,22 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package org.sonar.server.favorite;
+package org.sonarqube.ws.client.favorite;
 
-import org.sonar.core.platform.Module;
-import org.sonar.server.favorite.ws.AddAction;
-import org.sonar.server.favorite.ws.FavoritesWs;
-import org.sonar.server.favorite.ws.RemoveAction;
+import static java.util.Objects.requireNonNull;
 
-public class FavoriteModule extends Module {
+public class RemoveRequest {
+  private final String component;
 
-  @Override
-  protected void configureModule() {
-    add(
-      FavoriteUpdater.class,
-      FavoritesWs.class,
-      AddAction.class,
-      RemoveAction.class);
+  public RemoveRequest(String component) {
+    this.component = requireNonNull(component, "Component key is required");
   }
 
+  public String getComponent() {
+    return component;
+  }
 }

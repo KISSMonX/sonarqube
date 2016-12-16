@@ -22,35 +22,28 @@ package org.sonarqube.ws.client.favorite;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.sonarqube.ws.client.ServiceTester;
-import org.sonarqube.ws.client.WsConnector;
+import org.junit.rules.ExpectedException;
 
-import static org.mockito.Mockito.mock;
-import static org.sonarqube.ws.client.favorite.FavoritesWsParameters.PARAM_COMPONENT;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class FavoritesServiceTest {
+public class RemoveRequestTest {
   @Rule
-  public ServiceTester<FavoritesService> serviceTester = new ServiceTester<>(new FavoritesService(mock(WsConnector.class)));
+  public ExpectedException expectedException = ExpectedException.none();
 
-  private FavoritesService underTest = serviceTester.getInstanceUnderTest();
+  private RemoveRequest underTest;
 
   @Test
-  public void add() {
-    underTest.add(new AddRequest("my_project"));
+  public void test() {
+    underTest = new RemoveRequest("my-key");
 
-    serviceTester.assertThat(serviceTester.getPostRequest())
-      .hasPath("add")
-      .hasParam(PARAM_COMPONENT, "my_project")
-      .andNoOtherParam();
+    assertThat(underTest.getComponent()).isEqualTo("my-key");
   }
 
   @Test
-  public void remove() {
-    underTest.remove(new RemoveRequest("my_project"));
+  public void fail_if_component_is_null() {
+    expectedException.expect(NullPointerException.class);
+    expectedException.expectMessage("Component key is required");
 
-    serviceTester.assertThat(serviceTester.getPostRequest())
-      .hasPath("remove")
-      .hasParam(PARAM_COMPONENT, "my_project")
-      .andNoOtherParam();
+    underTest = new RemoveRequest(null);
   }
 }
