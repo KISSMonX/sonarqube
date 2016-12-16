@@ -25,7 +25,7 @@ export const getFavorites = (): Promise<Object> => (
 );
 
 export function addFavorite (componentKey: string) {
-  const url = '/api/favorites';
+  const url = '/api/favorites/add';
   const data = { component: componentKey };
   return post(url, data);
 }
