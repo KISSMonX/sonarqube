@@ -28,16 +28,19 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.sonar.wsclient.issue.BulkChangeQuery;
 import org.sonar.wsclient.issue.Issue;
 import org.sonar.wsclient.issue.IssueClient;
 import org.sonar.wsclient.issue.IssueQuery;
 import org.sonar.wsclient.issue.Issues;
+import org.sonarqube.ws.client.issue.BulkChangeRequest;
+import org.sonarqube.ws.client.issue.IssuesService;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 import util.user.UserRule;
 
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static util.ItUtils.newAdminWsClient;
 import static util.ItUtils.resetEmailSettings;
 import static util.ItUtils.runProjectAnalysis;
 import static util.ItUtils.setServerProperty;
@@ -52,6 +55,8 @@ public class IssueNotificationsTest extends AbstractIssueTest {
   private static Wiser smtpServer;
 
   private IssueClient issueClient;
+
+  private IssuesService issuesService;
 
   @ClassRule
   public static UserRule userRule = UserRule.from(ORCHESTRATOR);
@@ -103,6 +108,7 @@ public class IssueNotificationsTest extends AbstractIssueTest {
     ORCHESTRATOR.resetData();
     smtpServer.getMessages().clear();
     issueClient = ORCHESTRATOR.getServer().adminWsClient().issueClient();
+    issuesService = newAdminWsClient(ORCHESTRATOR).issues();
 
     setServerProperty(ORCHESTRATOR, "sonar.issues.defaultAssigneeLogin", null);
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.ofClasspath("/issue/one-issue-per-line-profile.xml"));
@@ -170,16 +176,18 @@ public class IssueNotificationsTest extends AbstractIssueTest {
     Issue issue = issues.list().get(0);
 
     // bulk change without notification by default
-    issueClient.bulkChange(BulkChangeQuery.create().issues(issue.key())
-      .actions("assign", "set_severity")
-      .actionParameter("assign", "assignee", USER_LOGIN)
-      .actionParameter("set_severity", "severity", "MINOR"));
+    issuesService.bulkChange(BulkChangeRequest.builder()
+      .setIssues(singletonList(issue.key()))
+      .setAssign(USER_LOGIN)
+      .setSetSeverity("MINOR")
+      .build());
 
     // bulk change with notification
-    issueClient.bulkChange(BulkChangeQuery.create().issues(issue.key())
-      .actions("set_severity")
-      .actionParameter("set_severity", "severity", "BLOCKER")
-      .sendNotifications(true));
+    issuesService.bulkChange(BulkChangeRequest.builder()
+      .setIssues(singletonList(issue.key()))
+      .setSetSeverity("BLOCKER")
+      .setSendNotifications(true)
+      .build());
 
     waitUntilAllNotificationsAreDelivered();
 
