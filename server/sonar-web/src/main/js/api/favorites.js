@@ -31,6 +31,7 @@ export function addFavorite (componentKey: string) {
 }
 
 export function removeFavorite (componentKey: string) {
-  const url = '/api/favourites/' + encodeURIComponent(componentKey);
-  return requestDelete(url);
+  const url = '/api/favorites/remove';
+  const data = { component: componentKey };
+  return post(url, data);
 }
